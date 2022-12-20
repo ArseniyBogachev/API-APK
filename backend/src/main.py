@@ -1,10 +1,31 @@
 import os
 import subprocess
+# import databases
+# import sqlalchemy
+from db import metadata, database
 from fastapi import FastAPI, UploadFile, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from .utils import SearchApiKeys
 
+
 app = FastAPI()
+metadata = metadata
+database = database
+app.state.database = database
+
+
+@app.on_event("startup")
+async def startup() -> None:
+    database_ = app.state.database
+    if not database_.is_connected:
+        await database_.connect()
+
+
+@app.on_event("shutdown")
+async def shutdown() -> None:
+    database_ = app.state.database
+    if database_.is_connected:
+        await database_.disconnect()
 
 
 app.add_middleware(
@@ -32,7 +53,7 @@ async def websocket_endpoint(websocket: WebSocket):
         keys = await search.get_keys()
         await websocket.send_text('100')
         await websocket.send_json(keys)
-    except:
+    except Exception:
         raise FileNotFoundError('Error')
     finally:
         os.chdir(base_dir)
