@@ -1,16 +1,16 @@
 import os
 import subprocess
-# import databases
-# import sqlalchemy
-from db import metadata, database
+import json
+import shutil
+from .db import metadata, database, engine
 from fastapi import FastAPI, UploadFile, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from .utils import SearchApiKeys
+from .models import *
 
 
 app = FastAPI()
-metadata = metadata
-database = database
+metadata.create_all(engine)
 app.state.database = database
 
 
@@ -48,11 +48,18 @@ async def websocket_endpoint(websocket: WebSocket):
         await websocket.send_text('10')
         os.chdir(os.path.join(base_dir, 'apktool'))
         subprocess.call(['apktool.bat', 'd', f'../apk_save/{filename}', '-f'])
+
         await websocket.send_text('65')
         search = SearchApiKeys(filename, websocket)
         keys = await search.get_keys()
-        await websocket.send_text('100')
+
+        os.chdir(base_dir)
+        shutil.rmtree(os.path.join(base_dir, 'apktool', filename[:-4]), ignore_errors=True)
+        os.remove(os.path.join(base_dir, 'apk_save', filename))
         await websocket.send_json(keys)
+
+        keys_json = json.dumps(keys)
+        await FileAndKeys.objects.create(title=filename, api_keys=keys_json)
     except Exception:
         raise FileNotFoundError('Error')
     finally:
