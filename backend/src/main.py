@@ -1,11 +1,10 @@
 import os
 import subprocess
 import json
-import shutil
 from .db import metadata, database, engine
 from fastapi import FastAPI, UploadFile, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
-from .utils import SearchApiKeys
+from .utils import SearchApiKeys, DeleteDir
 from .models import *
 
 
@@ -45,19 +44,26 @@ async def websocket_endpoint(websocket: WebSocket):
 
     base_dir = os.path.abspath(os.curdir)
     try:
+        # Запуск процесса декодирования APK-файла
         await websocket.send_text('10')
         os.chdir(os.path.join(base_dir, 'apktool'))
-        subprocess.call(['apktool.bat', 'd', f'../apk_save/{filename}', '-f'])
+        subprocess.call(['apktool.bat', 'd', f'{filename}', '-f'])
 
+        # Поиск API-ключей
         await websocket.send_text('65')
         search = SearchApiKeys(filename, websocket)
         keys = await search.get_keys()
 
+        # Удаление APK-файла и дериктории с андройд приложением
         os.chdir(base_dir)
-        shutil.rmtree(os.path.join(base_dir, 'apktool', filename[:-4]), ignore_errors=True)
-        os.remove(os.path.join(base_dir, 'apk_save', filename))
+        del_ = DeleteDir(os.path.join(base_dir, 'apktool', filename[:-4]))
+        del_.delete_dir()
+        os.remove(os.path.join(base_dir, 'apktool', filename))
+
+        # Ответ - API-ключи
         await websocket.send_json(keys)
 
+        # Сохранение API-ключей в db
         keys_json = json.dumps(keys)
         await FileAndKeys.objects.create(title=filename, api_keys=keys_json)
     except Exception:
@@ -68,10 +74,11 @@ async def websocket_endpoint(websocket: WebSocket):
 
 @app.post("/upload/")
 async def upload(file: UploadFile):
+    print(file.headers)
     if file.filename[-3:] != 'apk':
         raise FileNotFoundError('File extension must be: \'apk\'')
 
-    path_apk = os.path.join(os.path.abspath(os.curdir), 'apk_save', file.filename)
+    path_apk = os.path.join(os.path.abspath(os.curdir), 'apktool', file.filename)
     with open(path_apk, 'wb') as f:
         f.write(bytes(file.file.read()))
 

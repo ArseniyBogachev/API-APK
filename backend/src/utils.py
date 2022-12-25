@@ -60,3 +60,27 @@ class SearchApiKeys:
     async def get_keys(self):
         await self.__recurs_dirs(self.path_file)
         return self.keys
+
+
+class DeleteDir:
+    def __init__(self, path):
+        self.__path = path
+
+    def __del_recurse(self, path):
+        for i in os.listdir(path):
+            custom_path = f'{path}\\{i}'
+
+            if os.path.isdir(custom_path):
+                print(i)
+                self.__del_recurse(custom_path)
+                os.rmdir(custom_path)
+            else:
+                print(i)
+                os.remove(custom_path)
+
+        if len(os.listdir(self.__path)) == 0:
+            os.rmdir(path)
+
+    def delete_dir(self):
+        self.__del_recurse(self.__path)
+        return 'Delete OK!'
