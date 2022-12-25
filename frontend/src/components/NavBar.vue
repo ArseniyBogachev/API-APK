@@ -1,11 +1,14 @@
 <template>
   <div class="wrapper">
     <nav class="nav flex-column">
-      <a class="nav-link elem" v-bind:style="upload" href="#" @click.prevent="$router.push('/'); func_upload()">
+      <a class="nav-link elem" v-bind:style="choice.upload" href="#" @click.prevent="$router.push('/'); choice_func('upload')">
         <span>Upload file</span>
       </a>
-      <a class="nav-link elem" v-bind:style="components" href="#" @click.prevent="$router.push('/api'); func_components()">
+      <a class="nav-link elem" v-bind:style="choice.components" href="#" @click.prevent="$router.push('/api'); choice_func('components')">
         <span>Components</span>
+      </a>
+      <a class="nav-link elem" v-bind:style="choice.list" href="#" @click.prevent="$router.push('/list'); choice_func('list')">
+        <span>List application</span>
       </a>
     </nav>
   </div>
@@ -17,30 +20,31 @@ export default {
   name: "NavBar",
   data(){
     return{
-      upload: {
-        'border': '1px solid white',
-        'color': '#1e1a1c',
-        'background-color': '#807c7e',
+      choice: {
+        upload: {
+          'border': '1px solid white',
+          'color': '#1e1a1c',
+          'background-color': '#807c7e',
+        },
+        components: {},
+        list: {},
       },
-      components: {},
     }
   },
   methods:{
-    func_upload(){
-      this.upload = {
-        'border': '1px solid white',
-        'color': '#1e1a1c',
-        'background-color': '#807c7e',
+    choice_func(style){
+      for (let i in this.choice){
+        if (style === i){
+          this.choice[i] = {
+            'border': '1px solid white',
+            'color': '#1e1a1c',
+            'background-color': '#807c7e',
+          }
+        }
+        else{
+          this.choice[i] = {}
+        }
       }
-      this.components = {}
-    },
-    func_components(){
-      this.components = {
-        'border': '1px solid white',
-        'color': '#1e1a1c',
-        'background-color': '#807c7e',
-      }
-      this.upload = {}
     },
   },
   created() {

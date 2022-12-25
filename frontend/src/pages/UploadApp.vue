@@ -5,11 +5,24 @@
       <span v-if="upload_file" class="text">{{ upload_text }}</span>
       <span v-else class="text">Drag files here or click Upload & Analyze</span>
     </div>
-    <button type="button" class="btn btn-light"
-            v-if="buttonActive"
-            v-on:click="post_file(this.upload_file); preloader_func()">
-      <span class="style-text">Analyze file</span>
-    </button>
+
+    <div v-if="buttonActive" class="upload-and-settings">
+      <button type="button" class="btn btn-light upload"
+              v-on:click="post_file(this.upload_file); preloader_func()">
+        <span class="style-text">Analyze file</span>
+      </button>
+      <div class="dropdown">
+        <button class="btn btn-secondary dropdown-toggle settings" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+          <font-awesome-icon icon="fa-solid fa-gear" />
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+          <li><a class="dropdown-item" href="#">Действие</a></li>
+          <li><a class="dropdown-item" href="#">Другое действие</a></li>
+          <li><a class="dropdown-item" href="#">Что-то еще здесь</a></li>
+        </ul>
+      </div>
+    </div>
+
     <div class="loading-wrapper" v-else>
       <div class="process_loading" v-if="completeActive">
         <span class="preloader">{{ preloader_text }}</span>
@@ -122,14 +135,22 @@ export default {
     transform: translate(0, -50%);
     font-style: italic;
   }
-  .btn{
-    margin-top: 50px;
+  .upload{
     display: block;
-    margin-left: auto;
-    margin-right: auto;
     width: 300px;
     border: 1px solid #807c7e;
     font-weight: bold;
     color: #2a2628;
+  }
+  .upload-and-settings{
+    display: flex;
+    justify-content: center;
+    margin-top: 50px;
+  }
+  .dropdown{
+    margin-left: 10px;
+  }
+  .settings{
+
   }
 </style>

@@ -74,7 +74,6 @@ async def websocket_endpoint(websocket: WebSocket):
 
 @app.post("/upload/")
 async def upload(file: UploadFile):
-    print(file.headers)
     if file.filename[-3:] != 'apk':
         raise FileNotFoundError('File extension must be: \'apk\'')
 
@@ -83,3 +82,9 @@ async def upload(file: UploadFile):
         f.write(bytes(file.file.read()))
 
     return file.filename
+
+
+@app.get("/application/")
+async def application():
+    data = await FileAndKeys.objects.all()
+    return data

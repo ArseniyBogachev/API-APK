@@ -9,6 +9,7 @@ export default createStore({
     loading: 1,
     buttonActive: true,
     completeActive: true,
+    application: [],
   }),
   getters: {
     api_keys(state){
@@ -28,6 +29,9 @@ export default createStore({
     },
     completeActive(state){
       return state.completeActive
+    },
+    application(state){
+      return state.application
     },
   },
   mutations: {
@@ -49,8 +53,23 @@ export default createStore({
     CompleteActive(state){
       state.completeActive = !state.completeActive
     },
+    ApplicationAll(state, application){
+      for (let i of application){
+        i['active'] = false
+      }
+      state.application = application
+    },
   },
   actions: {
+    async get_keys(ctx){
+      try{
+        const response = await axios.get('http://127.0.0.1:8000/application/')
+        ctx.commit('ApplicationAll', response.data)
+      }
+      catch (e) {
+        console.log(e)
+      }
+    },
     async post_file(ctx, upload_file){
       try{
         ctx.commit('ButtonActive')
